@@ -52,9 +52,12 @@ static Header* morecore(unsigned int nu) {
   free((void*)(hp + 1));
   return freep;
 }
-static Header *p, *prevp, *bestp = (void*)0; // This is the null
 
-void* malloc(unsigned int nbytes) {
+static Header p;
+static Header *prevp = (void*)0; // This is the null
+static Header bestp;
+
+void* umalloc(unsigned int nbytes) {
   /* 
     - OS must maintain a list of free memory blocks available in the system. 
     - When a process requests memory, os searches this list for the smallest free block of memory that is large enough to accommodate the process. 
@@ -63,118 +66,67 @@ void* malloc(unsigned int nbytes) {
   
   unsigned int nunits; // Note: Need to change the types back to uint 
   nunits = (nbytes + sizeof(Header) - 1)/sizeof(Header) + 1;
-  if((prevp = freep) == 0) {
-    // Add another node that will store the best fit 
-    base.s.ptr = freep = prevp = bestp = &base; // This is the linked list 
-    base.s.size = 0; // This initalizes all the linked lists sizes to zero
+  if(prevp == (void*)0) {
+    prevp = &base;
+    prevp->s.size = nunits;
+    prevp->s.ptr = &p; // connect prevp to p through memory referencing
+    p.s.ptr = &bestp; // connect p to best through memory referencing 
+    base.s.size = nunits; // This initalizes all the linked lists sizes to zero
   }
-  if (prevp->s.size == 0) { prevp->s.size = nbytes; } // Always store the size
-  for(p = prevp->s.ptr, bestp = p->s.ptr; ; prevp = p, p = p->s.ptr, bestp = bestp->s.ptr) {
-    // [prevp] -> [p] -> [bestp]
-    // prevp = p is a pointy that is incrementing through stored memory addresses 
-    // p = prevp->s.ptr this is the previous node which is the base 
-    // pevp = p // connect the nodes together
-    // p = p->s.ptr
-    if(prevp->s.size < p->s.size)  {
+  if (prevp->s.size != nunits) {
+    prevp->s.size = nunits;
+  }
+  for(; (prevp->s.ptr) != (void*)0; prevp = prevp->s.ptr) {
+    /*
+      Layout:
+        - [prevp|size] -> [p|size] -> [bestp|size]
+      Notes:
+        - Each node has a pointer that type that points to it's own node respectively 
+    */
+    if(p.s.size < prevp->s.size)  {
       printf("=======================================================\n");
       printf("Found a block that can accommodate %u units\n", nunits);
       printf("=======================================================\n");
-      prevp = p; // Set the node that has the current best fit 
-      if (p->s.size < bestp->s.size) {
-        bestp = p;
-        freep = bestp;
-        return (void*)(bestp + 1);  // Return address after the header
-      }
-      bestp->s.size = prevp->s.size;
-      freep = bestp;
-      return (void*)(bestp + 1);  // Return address after the header
+      bestp.s.size = p.s.size;
+      p.s.size = prevp->s.size;
+      freep = prevp;
+      return (void*)(&bestp + 1);  // Return address after the header
     }
-    if (prevp->s.size < bestp->s.size) {
-      bestp = prevp; // best fit 
-      // Update freep
-      freep = bestp; // Update the linked list so it is at the end
-      return (void*)(bestp + 1); // return the linked list
+    if (p.s.size < bestp.s.size) {
+      bestp.s.size = p.s.size;
+      freep = &bestp;
+      return (void*)(&bestp + 1);  // Return address after the header
     }
-    if (prevp->s.size == nunits) {
+    if (prevp->s.ptr->s.size == nunits && prevp->s.ptr->s.ptr->s.size == nunits) {
       printf("=======================================================\n");
-      printf("Exact fit found, adjusting pointers\n");
-      printf("Previous block size: %u\n", prevp->s.size);
-      printf("Current block size: %u\n", p->s.size);
-      printf("Next block pointer: %p\n", p->s.ptr);
+      printf("Exact fit found, splitting the block\n");
+      printf("Previous block size: %u\n", prevp->s.ptr->s.size);
+      printf("Current block size: %u\n", p.s.size);
+      printf("Next block pointer: %p\n", p.s.ptr);
       printf("=======================================================\n");
-      if (p->s.size == nunits) {
-        prevp->s.ptr = p->s.ptr;
-        p->s.ptr = bestp->s.ptr;
-        freep = bestp;
-        return (void*)(bestp + 1); // return the linked list
-      }
-    } 
-    if (bestp == freep) {  
-      // Reached the end of the list
-      if (bestp == (void*)0) {
-        // No suitable block found
-        if ((bestp = morecore(nunits)) == (void*)0) {
-          printf("Allocation failure\n");
-          return (void*)(0);  // Allocation failure
-        }
-      }
-    }
-    else {
-      // Print debug information
-      printf("Previous block size: %d\n", prevp->s.size);
-      printf("Current block size: %d\n", p->s.size);
-      printf("Next block pointer: %p\n", p->s.ptr);
-      printf("Number of blocks: %d\n", nunits);
-      if (prevp->s.size >= p->s.size) {
-        if (p->s.size >= bestp->s.size) {
-          // Split the current block
-          p->s.size -= nunits;
-          prevp->s.size = nunits;
-          bestp->s.size = p->s.size;
-          freep = bestp;
-          return (void*)(bestp + 1); // return the linked list
-          
-        }
-      }
-      else {
-        prevp->s.size -= nunits;
-        p->s.size += prevp->s.size; // append the previous block size
-        if (p->s.size >= bestp->s.size) {
-          p->s.size -= nunits; // split it because p->s.size is the smallest block size 
-          prevp->s.size = nunits; // set the block back again which will hold the biggest block size
-          bestp->s.size = p->s.size; // Update the bestp node
-          freep = bestp; // Set the bestp node to be at the end of the linked list
-          return (void*)(bestp + 1); // return the linked list
-        }
-        else {
-          // All the nodes are greater than the split 
-          // This means it is the smallest 
-          bestp->s.size = prevp->s.size;
-          freep = bestp;
-          return (void*)(bestp + 1); // return the linked list
-        }
-      }
+      prevp->s.ptr->s.ptr->s.size /= 2;
+
+      return (void*)(prevp + 1); // return the linked list
     }
   }
 }
 int main(void) {
+  unsigned int sizes[] = {10, 20, 30, 15, 25, 35};
 
-    unsigned int sizes[] = {10, 20, 30, 15, 25, 35};
+  // Iterate through the array of sizes
+  for (int i = 0; i < sizeof(sizes) / sizeof(sizes[0]); i++) {
+    unsigned int nbytes = sizes[i];
+    printf("Allocating %d bytes of memory...\n", nbytes);
 
-    // Iterate through the array of sizes
-    for (int i = 0; i < sizeof(sizes) / sizeof(sizes[0]); i++) {
-        unsigned int nbytes = sizes[i];
-        printf("Allocating %d bytes of memory...\n", nbytes);
+    // Call your malloc function
+    void *ptr = umalloc(nbytes);
 
-        // Call your malloc function
-        void *ptr = malloc(nbytes);
-
-        // Check if allocation was successful
-        if (ptr == (void*)0) {
-            printf("Memory allocation failed for %d bytes\n", nbytes);
-        } else {
-            printf("Memory allocated successfully at address: %p\n", ptr);
-        }
+    // Check if allocation was successful
+    if (ptr == (void*)0) {
+        printf("Memory allocation failed for %d bytes\n", nbytes);
+    } else {
+        printf("Memory allocated successfully at address: %p\n", ptr);
     }
-    return 0;
+  }
+  return 0;
 }
