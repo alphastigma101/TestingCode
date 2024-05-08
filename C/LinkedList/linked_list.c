@@ -105,9 +105,12 @@ void* umalloc(unsigned int nbytes) {
       printf("Next block pointer: %p\n", p.s.ptr);
       printf("=======================================================\n");
       prevp->s.ptr->s.ptr->s.size /= 2;
-
       return (void*)(prevp + 1); // return the linked list
     }
+    bestp.s.size = p.s.size;
+    p.s.size = prevp->s.size;
+    freep = &bestp;
+    return (void*)(&bestp + 1);
   }
 }
 int main(void) {
