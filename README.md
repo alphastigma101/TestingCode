@@ -319,3 +319,12 @@ Zigzag Cipher: A simple transposition cipher where the plaintext is written diag
 19. Binary Analysis and Reverse Engineering Tools: Create assembly-based tools for analyzing binary executables, such as disassemblers, debuggers, or binary patching utilities.
 
 20. Custom Networking Protocol Stack: Implement a custom networking protocol stack in assembly language, including layers like Ethernet, IP, TCP, and UDP.
+
+##
+# Misc:
+##
+
+* - Sources:
+	* **playing with certs:**
+		- *https://www.imperialviolet.org/2013/08/01/ctpilot.html*
+
