@@ -1,3 +1,0 @@
-bursty: 812, 19
-bursty: 1005, 14
-bursty: 1268, 36

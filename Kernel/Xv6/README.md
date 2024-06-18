@@ -1,155 +1,201 @@
-# Clean up your space by compressing folders 
-* This is the command I used:
-```
-    tar cf - directory_name/ | zstd > compressed_file_name. tar
-```
-# Uncompresson:
-```
-    zstd -d /path/to/archive.tar.zst -o /path/to/output_folder
-```
-# To finish this assignment you will need to modify at least the following files in xv6:
-```
-Makefile
+xv6 is a re-implementation of Dennis Ritchie's and Ken Thompson's Unix
+Version 6 (v6).  xv6 loosely follows the structure and style of v6,
+but is implemented for a modern RISC-V multiprocessor using ANSI C.
 
-user/ps.c
+ACKNOWLEDGMENTS
 
-user/user.h
+xv6 is inspired by John Lions's Commentary on UNIX 6th Edition (Peer
+to Peer Communications; ISBN: 1-57398-013-7; 1st edition (June 14,
+2000)).  See also https://pdos.csail.mit.edu/6.1810/, which provides
+pointers to on-line resources for v6.
 
-user/usys.pl
+The following people have made contributions: Russ Cox (context switching,
+locking), Cliff Frey (MP), Xiao Yu (MP), Nickolai Zeldovich, and Austin
+Clements.
 
-kernel/uproc.h
+We are also grateful for the bug reports and patches contributed by
+Takahiro Aoyagi, Silas Boyd-Wickizer, Anton Burtsev, carlclone, Ian
+Chen, Dan Cross, Cody Cutler, Mike CAT, Tej Chajed, Asami Doi,
+eyalz800, Nelson Elhage, Saar Ettinger, Alice Ferrazzi, Nathaniel
+Filardo, flespark, Peter Froehlich, Yakir Goaron, Shivam Handa, Matt
+Harvey, Bryan Henry, jaichenhengjie, Jim Huang, Matúš Jókay, John
+Jolly, Alexander Kapshuk, Anders Kaseorg, kehao95, Wolfgang Keller,
+Jungwoo Kim, Jonathan Kimmitt, Eddie Kohler, Vadim Kolontsov, Austin
+Liew, l0stman, Pavan Maddamsetti, Imbar Marinescu, Yandong Mao, Matan
+Shabtay, Hitoshi Mitake, Carmi Merimovich, Mark Morrissey, mtasm, Joel
+Nider, Hayato Ohhashi, OptimisticSide, Harry Porter, Greg Price, Jude
+Rich, segfault, Ayan Shafqat, Eldar Sehayek, Yongming Shen, Fumiya
+Shigemitsu, Cam Tenny, tyfkda, Warren Toomey, Stephen Tu, Rafael Ubal,
+Amane Uehara, Pablo Ventura, Xi Wang, WaheedHafez, Keiichi Watanabe,
+Nicolas Wolovick, wxdao, Grant Wu, Jindong Zhang, Icenowy Zheng,
+ZhUyU1997, and Zou Chang Wei.
 
-kernel/syscall.h
 
-kernel/syscall.c
+The code in the files that constitute xv6 is
+Copyright 2006-2022 Frans Kaashoek, Robert Morris, and Russ Cox.
 
-kernel/defs.h
+### ERROR REPORTS
 
-kernel/proc.c
+Please send errors and suggestions to Frans Kaashoek and Robert Morris
+(kaashoek,rtm@mit.edu).  The main purpose of xv6 is as a teaching
+operating system for MIT's 6.1810, so we are more interested in
+simplifications and clarifications than new features.
 
-kernel/sysproc.c
-```
-# Hello, kernel
-* In this section will be our first foray into writing kernel code! We are going to implement a utility ps that will list the processes of a system. On a unix-like system such as macOS or Linux, you can type ps and you will see a list of running processes.
+### BUILDING AND RUNNING XV6
 
-```
-➜  ~ ps
-```
-```
-    PID TTY      	TIME CMD
-    1492 pts/4	00:00:00 zsh
-    1521 pts/4	00:00:00 ps
-```
-* We are going to implement something similar for xv6, but with only a tiny fraction of the functionality that the real ps utility has.
+You will need a RISC-V "newlib" tool chain from
+https://github.com/riscv/riscv-gnu-toolchain, and qemu compiled for
+riscv64-softmmu.  Once they are installed, and in your shell
+search path, you can run "make qemu".
+* ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-* Here is the output of my xv6 ps utility:
-```
-    $ ps
-```
-```
-    PID 	STATE   NAME
-    1   	sleep   init
-    2   	sleep   sh
-    3   	run 	ps
-```
-# Part 3. Write empty ps program
-* Create a new userspace program ps and provide a main function. After this step the ps program should run in xv6, but it does not do anything useful.
+# Ps utility 
 
-# Part 4. Add uproc struct
-* The xv6 proc struct is defined in kernel/proc.h. This structure contains more information than we need (or that the kernel would like a userspace program to have). Therefore we are going to create a uproc struct that holds only a the information we need to implement ps. Our ps utility needs three pieces of information for each process: the process ID, the name of the running process, and the state that the process is in.
 
-* Create a file kernel/uproc.h and put the following in it:
-```
-struct uproc {
-   int pid;
-   char name[16];
-   char state[7];
-};
-```
-# Part 5. Add empty pslist system call
-* Create a new system call named pslist. This system call should have the following signature in user.h. The pointer parameter is meant to be an array of uproc structs; this is an out parameter that will be populated by the kernel. The return value of the system call is the number of processes in the array.
-```
-    struct uproc;
 
-    // ...
 
-    int pslist(struct uproc*);
-```
-* Modify usys.pl to create the glue functions for this system call, and modify kernel/syscall.h to assign your new system call a syscall number.
 
-* In kernel/syscall.c the signature of your system call definition should be
-```
-    extern uint64 sys_pslist(void);
-```
-* xv6 uses the uint64 type to represent memory addresses that are managed by the kernel.
 
-* Add your system call to the syscalls array.
 
-* **Note:** that even though the return type is an unsigned integer, you will be able to return a negative number. I recommend returning -1 if an error occurs. After this step, your system call should exist and be callable, but it does not yet do anything. Note that this function does not take any parameters. You will need to use argaddr in step 5 to retrieve the first and only parameter of the pslist system call as a pointer.
 
-* Create a stub definition of sys_pslist in kernel/sysproc.c.
+* -------------------------------------------------------------------------------------------------------------------------------------------------------
 
-# Part 6. Test system call with ps
-* Add a call to pslist from ps to make sure that everything compiles and that you can execute your system call from a user application.
 
-* At this point you might be wondering what the size of our array of uproc structs should be. The value NPROC in kernel/param.h defines the maximum number of processes in an xv6 system.
 
-* After completing this step, you should be able to pass an array of uproc structs to the pslist system call in ps.c, and the system call should execute. We have not yet added any functionality to the system call.
+# FatCat Scheduler
 
-# Part 7. Implement pslist system call
-* We are going to create an internal kernel function that reads the list of processes. Modify kernel/defs.h to add the following function signature.
-```
-    int pslist(uint64 utable);
-```
-* Use argaddr to retrieve the first and only parameter of the pslist system call as a pointer. In the xv6 kernel it is common to use the uint64 type to store pointer values.
 
-* The xv6 process list is in kernel/proc.c. Create a new function in proc.c that will loop over the process list. You probably want this function to take a single uint64 parameter. Look at and borrow from the procdump function to complete this step. This function will be called from sys_pslist in sysproc.c. Skip processes in the UNUSED state.
 
-* The memory address of the array of uproc structs originated in ps.c and has been threaded all the way through to proc.c. This means that it is a user address. Do not write to user addresses directly. Do not write to user addresses directly. The kernel will panic. We want a calm kernel.
 
-* Instead, you need to use copyout. Create a uproc struct with the relevant data, and then use copyout to copy data to the user process. The first parameter to copyout is the pagetable of the calling process, you can retrieve the calling process with myproc(). Look for examples in xv6. The sys_pipe function is one example that you can look at.
+* -------------------------------------------------------------------------------------------------------------------------------------------------------
 
-* In C, the size of a struct is not necessarily the same as the sum of the sizes of its fields because the C compiler is allowed to add padding between fields to ensure proper alignment in memory. Proper alignment is important for efficient memory access on many modern CPUs. Accessing data off alignment may require extra memory fetches or complex operations, resulting in slower performance.
 
-* The sizeof operator in C returns the size of a variable or data type in bytes. When used on a struct, sizeof returns the total size of the struct, including any padding that the C compiler may have added between fields to ensure proper alignment. For example, consider the following struct:
-```
-struct Example {
-    int a;
-    char b;
-    double c;
-};
-```
-* To determine the size of this struct, including any padding added by the compiler, you can use sizeof(struct Example). This will return the total size of the struct, which may be larger than the sum of the sizes of its individual fields due to added padding.
+# Best fit
 
-* You will want the copyout code to look something like this:
-```
-    struct proc *myp = myproc();
-    copyout(myp->pagetable, POINTER_ARITH,  (char *) COPYING_FROM, HOW_MUCH_TO_COPY);
-```
-# Part 8. Print out the process list
-* The pointer to uproc structs that ps.c passes to the pslist system call should now be populated with real values!
 
-* Print them to stdout in the order “%d %s %s”, pid, state, name. Match my output below. The ampersand after sleep puts the process in the background. This is a useful trick in many shells.
+* ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-* Use the following strings to represent process states: “unused”, “sleep ”, “runble”, “run ”, “zombie”.
-```
-$ ps
-```
-```
-PID 	STATE   NAME
-1   	sleep   init
-2   	sleep   sh
-3   	run 	ps
-```
-$ sleep 100 &
-$ ps
-```
-```
-PID 	STATE   NAME
-1   	sleep   init
-2   	sleep   sh
-6   	run 	ps
-5   	sleep   sleep
-```
-# Submission
-* Push to the main branch of your GitHub repository.
+# Shrimpy 
+* **Isolation**:
+    - with pagetable, OS provides each process with its own private address space and memory. pagetable determine how to access physical memory and what parts can be accessed. guarding kernel and user stack with an unmapped page. 
+* **(Guard page) Attention**: xv6 provides a single kernel pagetable for all processes. But each process has a user pagetable.
+
+* **Multiplex**:
+- mapping same physical memory in several address spaces. (like trampoline page)
+
+* **Indirection**:
+- contiguous virtual memory may mapping to uncontiguous physical memory
+
+
+* **Page**:
+- A page table gives OS control over virtual-to-physical address translations at the granularity of aligned chunks of 4096 bytes, such a chunk is called a page.
+* **PTE to physical address**:
+    - page is aligned chunk, so it must has contiguous memory, and it makes offset available.
+    - entry of the page is given by PPN (middle 44-bit of PTE).
+    - 12-bit offset from virtual address indicates offset from entry of this page.
+    - 44-bit PPN + 12-bit offset is the 56-bit physical address we need.
+* **Sources:**
+    - *https://en.cppreference.com/w/c/memory/malloc*
+    - *https://github.com/guisongchen/notes-of-6.S081/blob/main/pagetable.md*
+    - *https://github.com/guisongchen/notes-of-6.S081/blob/main/pagetable.md#isolation*
+    - *https://stackoverflow.com/questions/71583679/why-return-does-not-exit-a-process-in-xv6*
+    - *https://en.cppreference.com/w/c/language/object#Alignment*
+    - *https://en.cppreference.com/w/cpp/string/byte/memmove*
+    - *https://en.cppreference.com/w/c/language/_Alignof*
+    - *https://en.cppreference.com/w/cpp/string/byte/memset*
+    - *https://en.cppreference.com/w/c/language/object*
+    - *https://en.cppreference.com/w/c/language/typedef*
+    - *https://eng.libretexts.org/Courses/Delta_College/C___Programming_I_(McClanahan)/12%3A_Pointers/12.07%3A_Function_Pointer_in_C*
+    - *https://www.gnu.org/software/c-intro-and-ref/manual/html_node/Function-Pointers.html*
+    - *https://www.cprogramming.com/tutorial/function-pointers.html*
+* -------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# File based encryption
+* **Brief Intro:***
+    - In this lab your task is to implement a simple version of file-based encryption. The cryptography is laughable, but the OS picture resembles reality. The idea is to mark certain directories as **vaults.** Any **file written to a vault is "encrypted" by adding a constant to the bytes before they are written to disk.** **This constant serves as a key.**
+* **Objective:**
+    - The **stat command.**
+    - A command for creating a vault from an empty directory. This should prompt for a key.
+    - A command for opening a vault that has been created. This should prompt for a key.
+    - A command for closing a vault. This should remove the key from memory.
+* -------------------------------------------------------------------------------------------------------------------------------------------------------
+# Inodes:
+*  **Based on the directory tree**, the **low-level name of a file** is often referred to as its inode number (i-number). 
+// An inode describes a single unnamed file.
+// The inode disk structure holds metadata: the file's type,
+// its size, the number of links referring to it, and the
+// list of blocks holding the file's content.
+//
+// The inodes are laid out sequentially on disk at block
+// sb.inodestart. Each inode has a number, indicating its
+// position on the disk.
+//
+// The kernel keeps a table of in-use inodes in memory
+// to provide a place for synchronizing access
+// to inodes used by multiple processes. The in-memory
+// inodes include book-keeping information that is
+// not stored on disk: ip->ref and ip->valid.
+//
+// An inode and its in-memory representation go through a
+// sequence of states before they can be used by the
+// rest of the file system code.
+//
+// * Allocation: an inode is allocated if its type (on disk)
+//   is non-zero. ialloc() allocates, and iput() frees if
+//   the reference and link counts have fallen to zero.
+//
+// * Referencing in table: an entry in the inode table
+//   is free if ip->ref is zero. Otherwise ip->ref tracks
+//   the number of in-memory pointers to the entry (open
+//   files and current directories). iget() finds or
+//   creates a table entry and increments its ref; iput()
+//   decrements ref.
+//
+// * Valid: the information (type, size, &c) in an inode
+//   table entry is only correct when ip->valid is 1.
+//   ilock() reads the inode from
+//   the disk and sets ip->valid, while iput() clears
+//   ip->valid if ip->ref has fallen to zero.
+//
+// * Locked: file system code may only examine and modify
+//   the information in an inode and its content if it
+//   has first locked the inode.
+//
+// Thus a typical sequence is:
+//   ip = iget(dev, inum)
+//   ilock(ip)
+//   ... examine and modify ip->xxx ...
+//   iunlock(ip)
+//   iput(ip)
+//
+// ilock() is separate from iget() so that system calls can
+// get a long-term reference to an inode (as for an open file)
+// and only lock it for short periods (e.g., in read()).
+// The separation also helps avoid deadlock and races during
+// pathname lookup. iget() increments ip->ref so that the inode
+// stays in the table and pointers to it remain valid.
+//
+// Many internal file system functions expect the caller to
+// have locked the inodes involved; this lets callers create
+// multi-step atomic operations.
+//
+// The itable.lock spin-lock protects the allocation of itable
+// entries. Since ip->ref indicates whether an entry is free,
+// and ip->dev and ip->inum indicate which i-node an entry
+// holds, one must hold itable.lock while using any of those fields.
+//
+// An ip->lock sleep-lock protects all ip-> fields other than ref,
+// dev, and inum.  One must hold ip->lock in order to
+// read or write that inode's ip->valid, ip->size, ip->type, &c.
+
+* -----------------------------------------------------------------------------------------------------------------------------
+
+System Limits: Check the maximum allocation size supported by your system. This limit can vary based on the operating system and architecture. For example, on a 32-bit system, the maximum allocation size might be limited to 2GB or 4GB, while on a 64-bit system, it can be much larger.
+Available Memory: Consider the amount of available memory on the system. Attempting to allocate more memory than is physically available can lead to performance issues, including swapping to disk and increased fragmentation.
+Fragmentation: Large allocations can lead to memory fragmentation, especially in systems with limited virtual memory or in long-running applications. Fragmentation can degrade performance and increase the likelihood of memory allocation failures.
+Cache Performance: Larger allocations may not fit efficiently into CPU caches, leading to increased cache misses and slower performance. Consider the cache hierarchy of your system when determining allocation sizes.
+Application Requirements: Consider the specific requirements of your application. If your application needs to allocate large contiguous blocks of memory, you may need to adjust the allocation size accordingly.
+Dynamic Allocation: Instead of allocating a single large block of memory, consider breaking it into smaller chunks or using dynamic allocation techniques like memory pools or slab allocators.
+Benchmarking: Benchmark different allocation sizes to determine the optimal size for your application. Measure the performance impact of different allocation sizes under typical workload scenarios.
+
+
