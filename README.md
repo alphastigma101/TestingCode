@@ -61,136 +61,21 @@
 ##
 # Asked chat gpt to give me the top 20 hardest cryptography 
 ##
-elow are stub functions for implementing 20 challenging cryptographic algorithms in C:
-
-AES (Advanced Encryption Standard)
-c
-Copy code
-#include <stdint.h>
-
-void aes_encrypt(const uint8_t *plaintext, const uint8_t *key, uint8_t *ciphertext);
-void aes_decrypt(const uint8_t *ciphertext, const uint8_t *key, uint8_t *plaintext);
-RSA (Rivest-Shamir-Adleman)
-c
-Copy code
-#include <openssl/rsa.h>
-
-void rsa_encrypt(const uint8_t *plaintext, size_t plaintext_len, RSA *key, uint8_t *ciphertext);
-void rsa_decrypt(const uint8_t *ciphertext, size_t ciphertext_len, RSA *key, uint8_t *plaintext);
-SHA-256 (Secure Hash Algorithm 256-bit)
-c
-Copy code
-#include <openssl/sha.h>
-
-void sha256(const uint8_t *data, size_t len, uint8_t *hash);
-Elliptic Curve Cryptography (ECC)
-c
-Copy code
-#include <openssl/ec.h>
-
-void ecc_encrypt(const uint8_t *plaintext, size_t plaintext_len, EC_KEY *key, uint8_t *ciphertext);
-void ecc_decrypt(const uint8_t *ciphertext, size_t ciphertext_len, EC_KEY *key, uint8_t *plaintext);
-Blowfish
-c
-Copy code
-#include <openssl/blowfish.h>
-
-void blowfish_encrypt(const uint8_t *plaintext, size_t len, const uint8_t *key, uint8_t *ciphertext);
-void blowfish_decrypt(const uint8_t *ciphertext, size_t len, const uint8_t *key, uint8_t *plaintext);
-Twofish
-c
-Copy code
-#include <twofish.h>
-
-void twofish_encrypt(const uint8_t *plaintext, size_t len, const uint8_t *key, uint8_t *ciphertext);
-void twofish_decrypt(const uint8_t *ciphertext, size_t len, const uint8_t *key, uint8_t *plaintext);
-Camellia
-c
-Copy code
-#include <openssl/camellia.h>
-
-void camellia_encrypt(const uint8_t *plaintext, size_t len, const uint8_t *key, uint8_t *ciphertext);
-void camellia_decrypt(const uint8_t *ciphertext, size_t len, const uint8_t *key, uint8_t *plaintext);
-Chaos-based Cryptography
-c
-Copy code
-void chaos_encrypt(const uint8_t *plaintext, size_t len, const uint8_t *key, uint8_t *ciphertext);
-void chaos_decrypt(const uint8_t *ciphertext, size_t len, const uint8_t *key, uint8_t *plaintext);
-McEliece Cryptosystem
-c
-Copy code
-void mceliece_encrypt(const uint8_t *plaintext, size_t len, const uint8_t *key, uint8_t *ciphertext);
-void mceliece_decrypt(const uint8_t *ciphertext, size_t len, const uint8_t *key, uint8_t *plaintext);
-Serpent
-c
-Copy code
-#include <openssl/serpent.h>
-
-void serpent_encrypt(const uint8_t *plaintext, size_t len, const uint8_t *key, uint8_t *ciphertext);
-void serpent_decrypt(const uint8_t *ciphertext, size_t len, const uint8_t *key, uint8_t *plaintext);
-RC4 (Rivest Cipher 4)
-c
-Copy code
-#include <openssl/rc4.h>
-
-void rc4_encrypt(const uint8_t *plaintext, size_t len, const uint8_t *key, uint8_t *ciphertext);
-void rc4_decrypt(const uint8_t *ciphertext, size_t len, const uint8_t *key, uint8_t *plaintext);
-MD5 (Message Digest Algorithm 5)
-c
-Copy code
-#include <openssl/md5.h>
-
-void md5(const uint8_t *data, size_t len, uint8_t *hash);
-Curve25519
-c
-Copy code
-#include <openssl/curve25519.h>
-
-void curve25519_key_exchange(const uint8_t *private_key, const uint8_t *public_key, uint8_t *shared_secret);
-Diffie-Hellman Key Exchange
-c
-Copy code
-#include <openssl/dh.h>
-
-void dh_key_exchange(const uint8_t *public_key, size_t pub_len, const uint8_t *private_key, uint8_t *shared_secret);
-HMAC (Hash-based Message Authentication Code)
-c
-Copy code
-#include <openssl/hmac.h>
-
-void hmac(const uint8_t *data, size_t len, const uint8_t *key, size_t key_len, uint8_t *hash);
-Whirlpool
-c
-Copy code
-#include <openssl/whrlpool.h>
-
-void whirlpool(const uint8_t *data, size_t len, uint8_t *hash);
-GOST Cryptography
-c
-Copy code
-#include <openssl/gost.h>
-
-void gost_encrypt(const uint8_t *plaintext, size_t len, const uint8_t *key, uint8_t *ciphertext);
-void gost_decrypt(const uint8_t *ciphertext, size_t len, const uint8_t *key, uint8_t *plaintext);
-RIPEMD-160
-c
-Copy code
-#include <openssl/ripemd.h>
-
-void ripemd160(const uint8_t *data, size_t len, uint8_t *hash);
-DSA (Digital Signature Algorithm)
-c
-Copy code
-#include <openssl/dsa.h>
-
-void dsa_sign(const uint8_t *message, size_t len, DSA *key, uint8_t *signature);
-int dsa_verify(const uint8_t *message, size_t len, const uint8_t *signature, size_t sig_len, DSA *key);
-Bcrypt
-c
-Copy code
-#include <bcrypt.h>
-
-void bcrypt_hash(const char *password, const char *salt, uint8_t *hash);
+* Twofish
+* Camellia
+* Chaos-based Cryptography
+* McEliece Cryptosystem
+* Serpent
+* RC4 (Rivest Cipher 4)
+* MD5 (Message Digest Algorithm 5)
+* Curve25519
+* Diffie-Hellman Key Exchange
+* HMAC (Hash-based Message Authentication Code)
+* Whirlpool
+* GOST Cryptography
+* RIPEMD-160
+* DSA (Digital Signature Algorithm)
+* Bcrypt
 ##
 # Asked chatgpt to give me the top 20 hardest subsitution ciphers
 ##
